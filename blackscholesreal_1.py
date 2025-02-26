@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 # Black-Scholes-Merton Formula
-def bsm_option_price(S, K, T, r, sigma, option_type):
+def bsm_option_price(S, K, T, r, sigma):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     
@@ -40,7 +40,7 @@ def main():
     sigma = st.sidebar.number_input("Volatility (σ) in %", value=20.0, min_value=0.0) / 100
 
     # Calculate option price
-    put_option_price = bsm_option_price(S, K, T, r, sigma, option_type)
+    put_option_price = bsm_option_price(S, K, T, r, sigma)
     call_price, put_price = put_option_price
 
     st.success(f"The theoretical price of the Call Price option is: **{call_price:.2f}**")
