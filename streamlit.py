@@ -49,7 +49,7 @@ def main():
     # Heatmap for Call Options
     heatmap_pivot_call = heatmap_df.pivot(index="Stock Price", columns="Time to Maturity", values="Call Price")
     plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_pivot_call, cmap="viridis", annot=False, fmt=".2f", cbar_kws={"label": "Call Price"})
+    sns.heatmap(heatmap_pivot_call, cmap="RdYlGn", annot=False, fmt="1.2f", cbar_kws={"label": "Call Price"})
     plt.title("Call Option Price Heatmap")
     plt.xlabel("Time to Maturity (Years)")
     plt.ylabel("Stock Price")
@@ -59,7 +59,7 @@ def main():
     # Heatmap for Put Options
     heatmap_pivot_put = heatmap_df.pivot(index="Stock Price", columns="Time to Maturity", values="Put Price")
     plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_pivot_put, cmap="viridis", annot=False, fmt=".2f", cbar_kws={"label": "Put Price"})
+    sns.heatmap(heatmap_pivot_put, cmap="RdYlGn", annot=False, fmt="1.2f", cbar_kws={"label": "Put Price"})
     plt.title("Put Option Price Heatmap")
     plt.xlabel("Time to Maturity (Years)")
     plt.ylabel("Stock Price")
