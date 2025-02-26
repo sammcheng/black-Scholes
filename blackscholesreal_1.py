@@ -60,8 +60,8 @@ def main():
     for s in stock_prices:
         for t in times_to_maturity:
             # Calculate call and put prices
-            call_price = bsm_option_price(s, K, t, r, sigma, 'call')
-            put_price = bsm_option_price(s, K, t, r, sigma, 'put')
+            call_price = bsm_option_price(s, K, t, r, sigma)
+            put_price = bsm_option_price(s, K, t, r, sigma)
             heatmap_data.append([s, t, call_price, put_price])
 
     # Convert to DataFrame
