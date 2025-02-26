@@ -6,17 +6,18 @@ import matplotlib.pyplot as plt
 from scipy.stats import norm
 
 # Black-Scholes-Merton Formula
-def bsm_option_price(S, K, T, r, sigma):
+def bsm_option_price(S, K, T, r, sigma, option_type):
     d1 = (np.log(S / K) + (r + 0.5 * sigma**2) * T) / (sigma * np.sqrt(T))
     d2 = d1 - sigma * np.sqrt(T)
     
-        #call
-    call_option_price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    if option_type == 'call':
+        option_price = S * norm.cdf(d1) - K * np.exp(-r * T) * norm.cdf(d2)
+    elif option_type == 'put':
+        option_price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
+    else:
+        raise ValueError("Invalid option type. Use 'call' or 'put'.")
     
-    put_option_price = K * np.exp(-r * T) * norm.cdf(-d2) - S * norm.cdf(-d1)
-
-    
-    return call_option_price, put_option_price
+    return option_price
 
 # Streamlit App
 def main():
@@ -38,15 +39,12 @@ def main():
     T = st.sidebar.number_input("Time to Maturity (T) in years", value=1.0, min_value=0.01)
     r = st.sidebar.number_input("Risk-Free Interest Rate (r) in %", value=5.0, min_value=0.0) / 100
     sigma = st.sidebar.number_input("Volatility (σ) in %", value=20.0, min_value=0.0) / 100
+    option_type = st.sidebar.radio("Option Type", ['call', 'put'])
 
     # Calculate option price
-    put_option_price = bsm_option_price(S, K, T, r, sigma)
-    call_price, put_price = put_option_price
-
-    st.success(f"The theoretical price of the Call Price option is: **{call_price:.2f}**")
-    st.success(f"The theoretical price of the Put Price option is: **{put_price:.2f}**")
-
-    
+    if st.sidebar.button("Calculate Option Price"):
+        option_price = bsm_option_price(S, K, T, r, sigma, option_type)
+        st.success(f"The theoretical price of the {option_type} option is: **{option_price:.2f}**")
 
     # Heatmap Section
     st.header("Interactive Heatmap: Option Price vs. Stock Price and Time to Maturity")
@@ -60,8 +58,8 @@ def main():
     for s in stock_prices:
         for t in times_to_maturity:
             # Calculate call and put prices
-            call_price = bsm_option_price(s, K, t, r, sigma)
-            put_price = bsm_option_price(s, K, t, r, sigma)
+            call_price = bsm_option_price(s, K, t, r, sigma, 'call')
+            put_price = bsm_option_price(s, K, t, r, sigma, 'put')
             heatmap_data.append([s, t, call_price, put_price])
 
     # Convert to DataFrame
