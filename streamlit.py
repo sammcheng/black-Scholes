@@ -4,12 +4,6 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-import streamlit as st
-import numpy as np
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-from scipy.stats import norm
 
 # Black-Scholes-Merton Formula
 def bsm_option_price(S, K, T, r, sigma, option_type):
