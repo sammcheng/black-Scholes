@@ -325,6 +325,101 @@ def create_greeks_charts(S, K, T, r, volatilities):
     
     return fig
 
+def create_traditional_heatmaps(S, K, T, r, volatilities):
+    """Create traditional 2D heatmaps for call and put prices vs volatility"""
+    call_prices = []
+    put_prices = []
+
+    # Calculate call and put prices for each volatility
+    for sigma in volatilities:
+        call_prices.append(black_scholes(S, K, T, r, sigma, "call"))
+        put_prices.append(black_scholes(S, K, T, r, sigma, "put"))
+
+    # Convert to numpy arrays for plotting
+    call_prices = np.array(call_prices)
+    put_prices = np.array(put_prices)
+
+    # Create the heatmap figure
+    fig, ax = plt.subplots(1, 2, figsize=(15, 6))
+
+    # Call option price heatmap
+    ax[0].plot(volatilities, call_prices, color="#1f77b4", linewidth=3, label="Call Prices")
+    ax[0].fill_between(volatilities, call_prices, alpha=0.3, color="#1f77b4")
+    ax[0].set_title("Call Option Price vs Volatility", fontsize=14, fontweight='bold')
+    ax[0].set_xlabel("Volatility (σ)", fontsize=12)
+    ax[0].set_ylabel("Option Price ($)", fontsize=12)
+    ax[0].grid(True, alpha=0.3)
+    ax[0].legend(fontsize=10)
+
+    # Put option price heatmap
+    ax[1].plot(volatilities, put_prices, color="#ff7f0e", linewidth=3, label="Put Prices")
+    ax[1].fill_between(volatilities, put_prices, alpha=0.3, color="#ff7f0e")
+    ax[1].set_title("Put Option Price vs Volatility", fontsize=14, fontweight='bold')
+    ax[1].set_xlabel("Volatility (σ)", fontsize=12)
+    ax[1].set_ylabel("Option Price ($)", fontsize=12)
+    ax[1].grid(True, alpha=0.3)
+    ax[1].legend(fontsize=10)
+
+    # Adjust layout
+    plt.tight_layout()
+    
+    return fig
+
+def create_combined_heatmap(S, K, T, r, volatilities):
+    """Create a combined heatmap showing both call and put prices on the same plot"""
+    call_prices = []
+    put_prices = []
+
+    # Calculate call and put prices for each volatility
+    for sigma in volatilities:
+        call_prices.append(black_scholes(S, K, T, r, sigma, "call"))
+        put_prices.append(black_scholes(S, K, T, r, sigma, "put"))
+
+    # Convert to numpy arrays for plotting
+    call_prices = np.array(call_prices)
+    put_prices = np.array(put_prices)
+
+    # Create the combined heatmap figure
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+
+    # Plot both call and put prices
+    ax.plot(volatilities, call_prices, color="#1f77b4", linewidth=3, label="Call Prices", marker='o', markersize=4)
+    ax.plot(volatilities, put_prices, color="#ff7f0e", linewidth=3, label="Put Prices", marker='s', markersize=4)
+    
+    # Fill areas
+    ax.fill_between(volatilities, call_prices, alpha=0.2, color="#1f77b4")
+    ax.fill_between(volatilities, put_prices, alpha=0.2, color="#ff7f0e")
+    
+    # Add price difference line
+    price_diff = call_prices - put_prices
+    ax.plot(volatilities, price_diff, color="#2ca02c", linewidth=2, linestyle='--', 
+            label="Call - Put Difference", alpha=0.7)
+
+    ax.set_title("Call vs Put Option Prices vs Volatility", fontsize=16, fontweight='bold')
+    ax.set_xlabel("Volatility (σ)", fontsize=14)
+    ax.set_ylabel("Option Price ($)", fontsize=14)
+    ax.grid(True, alpha=0.3)
+    ax.legend(fontsize=12, loc='upper left')
+    
+    # Add annotations for current values
+    current_call = call_prices[len(call_prices)//2]  # Middle value
+    current_put = put_prices[len(put_prices)//2]
+    ax.annotate(f'Call: ${current_call:.2f}', 
+                xy=(volatilities[len(volatilities)//2], current_call),
+                xytext=(10, 10), textcoords='offset points',
+                bbox=dict(boxstyle='round,pad=0.3', facecolor='#1f77b4', alpha=0.7),
+                fontsize=10, color='white')
+    
+    ax.annotate(f'Put: ${current_put:.2f}', 
+                xy=(volatilities[len(volatilities)//2], current_put),
+                xytext=(10, -20), textcoords='offset points',
+                bbox=dict(boxstyle='round,pad=0.3', facecolor='#ff7f0e', alpha=0.7),
+                fontsize=10, color='white')
+
+    plt.tight_layout()
+    
+    return fig
+
 # Streamlit app
 def main():
     # Header
@@ -352,6 +447,14 @@ def main():
     vol_min = st.sidebar.slider("Min Volatility", 0.01, 0.5, 0.01, 0.01)
     vol_max = st.sidebar.slider("Max Volatility", 0.1, 1.0, 1.0, 0.01)
     volatilities = np.linspace(vol_min, vol_max, 100)
+    
+    # Visualization options
+    st.sidebar.markdown("## 📊 Visualization Options")
+    viz_type = st.sidebar.selectbox(
+        "Choose Visualization Type",
+        ["Interactive Charts", "Traditional Heatmaps", "Combined Heatmap", "3D Surfaces", "All Visualizations"],
+        help="Select the type of charts to display"
+    )
     
     # Calculate option prices
     call_price = black_scholes(S, K, T, r, sigma, option_type="call")
@@ -454,24 +557,37 @@ def main():
     
     st.dataframe(greeks_df.style.applymap(highlight_diff, subset=['Difference']), use_container_width=True)
     
-    # Option price charts
-    st.markdown("## 📈 Option Price Analysis")
-    st.markdown("Interactive charts showing both call and put prices across different volatilities:")
-    price_chart = create_option_price_charts(S, K, T, r, volatilities)
-    st.plotly_chart(price_chart, use_container_width=True)
+    # Display visualizations based on user selection
+    if viz_type == "Interactive Charts" or viz_type == "All Visualizations":
+        st.markdown("## 📈 Interactive Option Price Analysis")
+        st.markdown("Interactive charts showing both call and put prices across different volatilities:")
+        price_chart = create_option_price_charts(S, K, T, r, volatilities)
+        st.plotly_chart(price_chart, use_container_width=True)
+        
+        # Greeks charts
+        st.markdown("## 🔍 Interactive Greeks Analysis")
+        st.markdown("Greeks comparison for both call and put options:")
+        greeks_chart = create_greeks_charts(S, K, T, r, volatilities)
+        st.plotly_chart(greeks_chart, use_container_width=True)
     
-    # Greeks charts
-    st.markdown("## 🔍 Greeks Analysis")
-    st.markdown("Greeks comparison for both call and put options:")
-    greeks_chart = create_greeks_charts(S, K, T, r, volatilities)
-    st.plotly_chart(greeks_chart, use_container_width=True)
+    if viz_type == "Traditional Heatmaps" or viz_type == "All Visualizations":
+        st.markdown("## 🔥 Traditional Heatmaps")
+        st.markdown("Classic 2D heatmaps showing call and put option prices vs volatility:")
+        heatmap_fig = create_traditional_heatmaps(S, K, T, r, volatilities)
+        st.pyplot(heatmap_fig)
     
-    # 3D heatmap
-    st.markdown("## 🌊 3D Price Surfaces")
-    st.markdown("3D visualization of both call and put option price surfaces:")
-    stock_prices = np.linspace(S * 0.5, S * 1.5, 50)
-    heatmap_3d = create_heatmap_3d(S, K, T, r, volatilities, stock_prices)
-    st.plotly_chart(heatmap_3d, use_container_width=True)
+    if viz_type == "Combined Heatmap" or viz_type == "All Visualizations":
+        st.markdown("## 🔥 Combined Heatmap")
+        st.markdown("Single chart comparing call and put prices with price difference:")
+        combined_fig = create_combined_heatmap(S, K, T, r, volatilities)
+        st.pyplot(combined_fig)
+    
+    if viz_type == "3D Surfaces" or viz_type == "All Visualizations":
+        st.markdown("## 🌊 3D Price Surfaces")
+        st.markdown("3D visualization of both call and put option price surfaces:")
+        stock_prices = np.linspace(S * 0.5, S * 1.5, 50)
+        heatmap_3d = create_heatmap_3d(S, K, T, r, volatilities, stock_prices)
+        st.plotly_chart(heatmap_3d, use_container_width=True)
     
     # Additional insights
     st.markdown("## 💡 Market Insights")
